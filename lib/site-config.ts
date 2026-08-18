@@ -1,6 +1,9 @@
 export const siteConfig = {
   nome: "Renovo Diário",
   descricao: "Devocionais diários, estudos teológicos e reflexões sobre fé e vida.",
+  // Usada no e-mail de boas-vindas (lib/email.ts) para montar o link do site.
+  // Troque pelo domínio real quando o site estiver publicado.
+  url: process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
   autor: {
     nome: "Seu Nome Aqui",
     bio: "Escrevo sobre fé, teologia e vida cristã no dia a dia.",

@@ -144,51 +144,57 @@ O padrão local é SQLite (`dev.db`). Para usar Postgres/MySQL em produção
    equivalente, e ajuste o construtor do adapter para `{ connectionString }`
 4. Rode `npx prisma migrate dev --name init` contra o novo banco
 
-## Como enviar os e-mails para os inscritos
+## E-mail de boas-vindas
 
-O formulário de cadastro (`components/SubscribeForm.tsx`) já captura nome,
-e-mail, faixa etária, denominação (opcional) e trilha de interesse
-(devocionais / estudos / ambos), e salva tudo no banco de dados (tabela
-`Subscriber`, via Prisma).
+Quando alguém preenche o formulário de cadastro
+(`components/SubscribeForm.tsx`), duas coisas acontecem, nessa ordem:
 
-**Importante:** guardar o cadastro no banco não envia e-mail nenhum sozinho.
-Hoje o site só *coleta* os inscritos — o disparo em si (o "e-mail que a
-pessoa recebe todo dia") ainda precisa ser configurado à parte. Isso é assim
-de propósito: enviar e-mail em massa exige um serviço especializado, não dá
-para simplesmente usar o seu Gmail/Outlook pessoal (a maioria dos provedores
-bloqueia ou marca como spam o envio em massa por uma conta pessoal).
+1. O cadastro é salvo no banco (tabela `Subscriber`, via Prisma) — nome,
+   e-mail, faixa etária, denominação (opcional) e trilha de interesse.
+2. Um **e-mail de boas-vindas automático** é disparado para a pessoa, com um
+   versículo e um convite para conhecer o site (`lib/email.ts`, via
+   [Resend](https://resend.com)).
 
-**O que fazer:**
+Isso é diferente de uma campanha diária automática (mandar um devocional
+novo todo dia para a lista inteira) — é só a mensagem única de "seja
+bem-vindo(a)" no momento do cadastro. Se um dia você quiser evoluir para
+disparos diários, [Trocando/expandindo o envio de e-mail](#trocandoexpandindo-o-envio-de-e-mail)
+tem o caminho.
 
-1. **Crie uma conta em um serviço de envio de e-mail em massa.** Alguns
-   exemplos com plano gratuito para começar: [Brevo](https://www.brevo.com/pt/),
-   [Mailchimp](https://mailchimp.com/), [Resend](https://resend.com/) ou
-   [SendGrid](https://sendgrid.com/). Isso é diferente de criar um e-mail
-   comum — é uma ferramenta que cuida de disparar milhares de e-mails sem
-   cair na caixa de spam.
-2. Dentro do painel desse serviço, gere uma **chave de API** (API Key) — é
-   um código secreto que dá permissão para o site enviar e-mails em seu nome.
-3. Escolha também o **e-mail remetente** (de onde os e-mails vão "sair"),
-   por exemplo `contato@seudominio.com.br`. Alguns provedores pedem para
-   verificar um domínio próprio antes de liberar o envio.
-4. No arquivo `.env` do projeto, preencha:
-   ```bash
-   EMAIL_PROVIDER_API_KEY="a-chave-que-voce-gerou-no-passo-2"
-   EMAIL_FROM="contato@seudominio.com.br"
-   ```
-5. No arquivo [app/api/subscribe/route.ts](app/api/subscribe/route.ts), no
-   bloco marcado com `TODO`, é onde entra a chamada à API do provedor
-   escolhido para criar o contato já com as tags de segmentação
-   (`faixaEtaria` + `trilha`) — cada provedor tem sua própria forma de fazer
-   isso (a documentação deles traz exemplos prontos para copiar).
-6. Ao publicar um novo devocional, dispare a campanha para a lista/tag
-   correspondente direto no painel do provedor (a maioria tem um "criar
-   campanha" bem simples) — ou, se quiser automatizar esse passo também,
-   dá para chamar a API do provedor para disparar sozinho.
+**Para ativar de verdade** (sem isso, o cadastro funciona normalmente, só o
+e-mail não sai — fica um aviso no log do servidor):
 
-Sem esses passos, o formulário continua funcionando normalmente (o cadastro
-é salvo no banco), só que ninguém recebe e-mail até essa integração ser
-feita.
+1. Crie uma conta em [resend.com](https://resend.com) (tem plano gratuito,
+   dá pra começar sem cartão de crédito).
+2. No painel, gere uma **API key** e cole em `RESEND_API_KEY` no `.env`.
+3. Em "Domains" no painel do Resend, verifique um domínio próprio e use um
+   endereço dele em `EMAIL_FROM` (ex.: `contato@seudominio.com.br`). Sem
+   domínio verificado, o Resend só deixa enviar para o e-mail da sua própria
+   conta — ótimo pra testar, mas não funciona para inscritos de verdade.
+4. Preencha `NEXT_PUBLIC_SITE_URL` com a URL real do site (é o link que vai
+   dentro do e-mail) — em `http://localhost:3000` funciona para testar.
+5. Reinicie o `npm run dev`.
+
+O texto do e-mail (versículo, convite, bio do autor) está em
+[lib/email.ts](lib/email.ts) — edite `VERSICULO_BOAS_VINDAS` e o HTML do
+template à vontade.
+
+## Trocando/expandindo o envio de e-mail
+
+O que existe hoje é só o e-mail de boas-vindas (disparo único, na hora do
+cadastro). Para automatizar o **devocional diário** para todos os inscritos:
+
+1. Continue usando o Resend (ele também aguenta disparos em lote) ou troque
+   por uma ferramenta de e-mail marketing com gestão de lista pronta —
+   [Brevo](https://www.brevo.com/pt/) e [Mailchimp](https://mailchimp.com/)
+   são bons exemplos com plano gratuito.
+2. Crie uma rotina (um cron job, uma Vercel Cron Function, um script agendado)
+   que roda todo dia, busca o devocional do dia (`getDevocionalDoDia()` em
+   `lib/db.ts`) e dispara para os inscritos filtrando por `faixaEtaria` e
+   `trilha` (já salvos em cada `Subscriber`).
+3. Se trocar de provedor, o ponto de entrada continua sendo
+   [lib/email.ts](lib/email.ts) — é só adaptar `sendWelcomeEmail` (ou
+   adicionar uma função nova ao lado) para o SDK do provedor escolhido.
 
 ## Segurança
 

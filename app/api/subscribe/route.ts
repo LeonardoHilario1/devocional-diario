@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { addSubscriber } from "@/lib/db";
+import { sendWelcomeEmail } from "@/lib/email";
 import { getClientIp, isRateLimited } from "@/lib/rate-limit";
 import type { FaixaEtaria } from "@/lib/types";
 
@@ -62,9 +63,12 @@ export async function POST(request: Request) {
     return NextResponse.json({ erro: resultado.erro }, { status: 409 });
   }
 
-  // TODO: quando integrar um provedor de e-mail marketing (Brevo, Mailchimp,
-  // ConvertKit...), chame a API dele aqui para adicionar o contato à lista
-  // com as tags de segmentação (faixaEtaria + trilha), além de salvar localmente.
+  // sendWelcomeEmail nunca lança erro (falhas de envio só vão para o log —
+  // veja lib/email.ts), então aguardar aqui não arrisca derrubar a resposta
+  // do cadastro. É `await` (em vez de disparar e esquecer) porque em
+  // hospedagens serverless a função pode ser encerrada assim que a resposta
+  // é enviada, antes de uma tarefa em segundo plano terminar.
+  await sendWelcomeEmail({ nome, email });
 
   return NextResponse.json({ ok: true }, { status: 201 });
 }
