@@ -2,13 +2,15 @@ const isDev = process.env.NODE_ENV !== "production";
 
 const contentSecurityPolicy = [
   "default-src 'self'",
-  // Hash do script inline em app/layout.tsx (evita flash de tema claro/escuro).
-  // Se esse script for editado, o hash precisa ser recalculado.
-  // Em dev, o Next usa eval() para o Hot Module Reload — 'unsafe-eval' só
-  // é liberado aqui, nunca em produção.
-  `script-src 'self' 'sha256-iBb1ek/DZ7w8zddn0N9I0LOz7Et6YSA/6XHfrPP1MnE='${
-    isDev ? " 'unsafe-eval'" : ""
-  }`,
+  // O App Router do Next.js injeta vários scripts inline por página (dados
+  // do React Server Components, hidratação), cada um com conteúdo — e hash —
+  // diferente a cada build/render. Bloquear inline scripts exigiria CSP por
+  // nonce, mas isso força toda página a renderizar dinamicamente a cada
+  // request (perde geração estática) — não vale a pena para um site de
+  // conteúdo como este. 'unsafe-inline' ainda impede scripts REMOTOS
+  // injetados por um atacante (a proteção mais importante do script-src).
+  // Em dev, o Next também usa eval() para o Hot Module Reload.
+  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data:",
   "font-src 'self' data:",
