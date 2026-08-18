@@ -190,6 +190,71 @@ Sem esses passos, o formulário continua funcionando normalmente (o cadastro
 é salvo no banco), só que ninguém recebe e-mail até essa integração ser
 feita.
 
+## Segurança
+
+**O que já está protegido:**
+
+- **Injeção de SQL**: todo acesso ao banco passa pelo Prisma (`lib/db.ts`),
+  que sempre usa queries parametrizadas — não há nenhuma query SQL montada
+  por concatenação de string em lugar nenhum do projeto.
+- **Rotas expostas**: o único endpoint público de escrita é
+  `POST /api/subscribe` (cadastro de e-mail). Não existe nenhuma rota que
+  liste ou devolva os inscritos — os dados da tabela `Subscriber` (nome,
+  e-mail, etc.) não podem ser lidos por ninguém de fora.
+- **Isolamento de dados por usuário ("RLS")**: o conceito de Row Level
+  Security é de bancos como Postgres/Supabase; este projeto usa SQLite sem
+  esse mecanismo. Na prática, o equivalente aqui é não ter nenhuma rota que
+  exponha dados de outros cadastros — o que já é o caso hoje. **Se um dia
+  este banco for trocado por Postgres/Supabase** (veja
+  [Trocando o banco de dados](#trocando-o-banco-de-dados)) e for adicionado
+  login de usuários, ative RLS nas tabelas *e* lembre que o Prisma normalmente
+  se conecta com uma credencial de administrador que ignora RLS por padrão —
+  nesse caso as regras de acesso continuam precisando ser aplicadas no código
+  (como já é feito hoje), não só no banco.
+- **Validação e limites de entrada**: o formulário de cadastro valida e-mail,
+  limita o tamanho de cada campo (nome, e-mail, denominação) e rejeita
+  requisições com corpo maior que 10&nbsp;KB, evitando abusos com payloads
+  gigantes.
+- **Rate limiting**: `POST /api/subscribe` aceita no máximo 5 requisições por
+  minuto por IP (`lib/rate-limit.ts`), para dificultar spam/flood no
+  cadastro. É um limite em memória — funciona bem em um servidor único
+  (self-hosted, Docker); em plataformas serverless com múltiplas instâncias
+  (Vercel, por exemplo) o limite passa a ser aproximado por instância, então
+  para produção nesse cenário vale trocar por um store compartilhado (ex.:
+  Upstash Redis).
+- **Cabeçalhos HTTP de segurança** (`next.config.mjs`): Content-Security-Policy,
+  `X-Frame-Options: DENY` (impede que o site seja carregado dentro de um
+  `<iframe>` em outro domínio — clickjacking), `X-Content-Type-Options`,
+  `Referrer-Policy`, `Permissions-Policy` e `Strict-Transport-Security`. O
+  cabeçalho `X-Powered-By: Next.js` também foi desativado para não anunciar
+  a versão do framework.
+- **Segredos**: `.env` (chaves de API, string de conexão do banco) nunca é
+  versionado no git — confira o `.gitignore`. Ao configurar o provedor de
+  e-mail, a chave de API dele também deve ficar só no `.env`, nunca em código
+  ou em variáveis `NEXT_PUBLIC_*` (essas são enviadas ao navegador — o
+  oposto do que se quer para uma chave secreta).
+
+**O que ainda precisa de atenção — dependências desatualizadas:**
+
+`npm audit` acusa 8 vulnerabilidades de severidade alta nas dependências:
+
+- `next@14.2.35` tem diversos CVEs corrigidos só a partir da major seguinte
+  (upgrade para `next@16`). O projeto não usa as funcionalidades mais visadas
+  por esses CVEs (Server Actions, Middleware, `next/image` com
+  `remotePatterns`, i18n, rewrites) — reduz o risco prático, mas não zera,
+  já que parte dos CVEs é no núcleo do App Router.
+- `postcss` (usado só durante o build do CSS) e `deepmerge-ts` (usado
+  internamente pelo Prisma CLI) têm vulnerabilidades que só importam se
+  alguém conseguir injetar CSS ou config maliciosos no seu processo de
+  build — baixo risco prático aqui, mas vale corrigir.
+
+**Não rodei `npm audit fix --force`** porque ele tentaria resolver a
+vulnerabilidade do `deepmerge-ts` rebaixando o Prisma para `6.12.0` — uma
+versão anterior aos recursos do Prisma 7 usados neste projeto (driver
+adapters, `prisma.config.ts`), o que quebraria o banco de dados configurado
+agora. Atualizar o Next.js para a v15/v16 é uma mudança maior (API do App
+Router, formato de config) que merece ser feita — e testada — separadamente.
+
 ## Design
 
 - Tipografia serifada (Lora) para o corpo de leitura + sans-serif (Inter)
