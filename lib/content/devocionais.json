@@ -1,0 +1,56 @@
+[
+  {
+    "slug": "descanso-para-a-alma",
+    "titulo": "Descanso para a Alma",
+    "data": "2026-08-18",
+    "versiculo": "Vinde a mim, todos os que estais cansados e sobrecarregados, e eu vos aliviarei.",
+    "referencia": "Mateus 11:28",
+    "corpo": [
+      "Vivemos correndo. Entre notificações, prazos e listas de tarefas que nunca terminam, é fácil esquecer que fomos criados para algo além da produtividade constante.",
+      "Jesus não convida os fortes e realizados — ele convida os cansados. O convite não é para os que já resolveram tudo, mas para quem carrega um peso que não consegue mais sustentar sozinho."
+    ],
+    "aplicacao": [
+      "Reserve 10 minutos hoje sem telas, apenas em silêncio.",
+      "Entregue em oração uma preocupação específica que você tem carregado sozinho."
+    ],
+    "oracao": "Senhor, eu te entrego o peso que carrego hoje. Ensina-me a descansar em ti, não pelas minhas forças, mas pela tua graça. Amém.",
+    "faixaEtaria": ["jovens", "adultos", "familia"],
+    "tempoLeituraMin": 3
+  },
+  {
+    "slug": "coragem-diante-do-desconhecido",
+    "titulo": "Coragem Diante do Desconhecido",
+    "data": "2026-08-17",
+    "versiculo": "Esforça-te, e tem bom ânimo; não temas, nem te espantes, porque o Senhor teu Deus é contigo, por onde quer que andares.",
+    "referencia": "Josué 1:9",
+    "corpo": [
+      "Josué recebeu uma missão gigantesca: liderar um povo inteiro para uma terra desconhecida, depois da morte do único líder que eles conheciam.",
+      "Deus não removeu a incerteza do caminho — ele prometeu presença nela. A coragem bíblica não é ausência de medo, é confiança na companhia de Deus apesar do medo."
+    ],
+    "aplicacao": [
+      "Identifique uma decisão que você tem adiado por medo.",
+      "Escreva uma oração pedindo coragem para dar o próximo passo, não o caminho todo."
+    ],
+    "oracao": "Pai, diante do que não conheço, eu escolho confiar em quem te conheço a ti. Vai comigo. Amém.",
+    "faixaEtaria": ["jovens", "adultos"],
+    "tempoLeituraMin": 3
+  },
+  {
+    "slug": "familia-como-lugar-de-graca",
+    "titulo": "Família Como Lugar de Graça",
+    "data": "2026-08-16",
+    "versiculo": "Sede uns para com os outros benignos, misericordiosos, perdoando-vos uns aos outros, como também Deus vos perdoou em Cristo.",
+    "referencia": "Efésios 4:32",
+    "corpo": [
+      "O lar deveria ser o lugar mais seguro do mundo — não porque nele não há erros, mas porque nele há graça suficiente para cobri-los.",
+      "Perdoar em casa, todos os dias, pelas coisas pequenas, é um treino silencioso de caráter que poucos veem, mas que forma quem realmente somos."
+    ],
+    "aplicacao": [
+      "Peça perdão por algo pequeno que normalmente você deixaria passar em silêncio.",
+      "Elogie especificamente algo que um familiar fez essa semana."
+    ],
+    "oracao": "Senhor, torna minha casa um lugar onde tua graça é visível em como tratamos uns aos outros. Amém.",
+    "faixaEtaria": ["familia", "adultos"],
+    "tempoLeituraMin": 2
+  }
+]

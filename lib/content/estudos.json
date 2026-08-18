@@ -1,0 +1,62 @@
+[
+  {
+    "slug": "como-a-biblia-foi-formada",
+    "titulo": "Como a Bíblia Foi Formada: Uma Introdução ao Cânon",
+    "materia": "bibliologia-hermeneutica",
+    "resumo": "Entenda o processo histórico pelo qual os 66 livros da Bíblia foram reconhecidos como Escritura inspirada.",
+    "corpo": [
+      "A palavra 'cânon' vem do grego kanon, que significa 'régua' ou 'padrão de medida'. Falar do cânon bíblico é falar de como a igreja reconheceu — não criou — quais livros carregavam autoridade divina.",
+      "No Antigo Testamento, o processo de reconhecimento já estava amplamente consolidado na época de Jesus, que cita as Escrituras hebraicas como autoridade final. No Novo Testamento, critérios como autoria apostólica, uso litúrgico generalizado e consistência doutrinária guiaram o reconhecimento dos 27 livros ao longo dos primeiros séculos."
+    ],
+    "data": "2026-08-10",
+    "tempoLeituraMin": 8
+  },
+  {
+    "slug": "a-doutrina-da-trindade",
+    "titulo": "A Doutrina da Trindade: Um Deus em Três Pessoas",
+    "materia": "teologia-sistematica",
+    "resumo": "Um panorama bíblico e histórico da doutrina central que distingue a fé cristã de outras tradições monoteístas.",
+    "corpo": [
+      "A Trindade não é uma palavra encontrada na Bíblia, mas um conceito profundamente bíblico: há um só Deus, eternamente existente em três pessoas distintas — Pai, Filho e Espírito Santo — cada uma plenamente divina.",
+      "Essa doutrina não foi inventada pelo Concílio de Niceia (325 d.C.); ela foi formalizada ali como resposta a heresias que distorciam o que a igreja já cria com base nas Escrituras."
+    ],
+    "data": "2026-08-05",
+    "tempoLeituraMin": 10
+  },
+  {
+    "slug": "os-pais-da-igreja-primitiva",
+    "titulo": "Os Pais da Igreja Primitiva e Sua Relevância Hoje",
+    "materia": "historia-da-igreja",
+    "resumo": "Por que estudar Inácio de Antioquia, Policarpo e Irineu ainda importa para o cristão do século XXI.",
+    "corpo": [
+      "Os Pais Apostólicos foram os primeiros líderes cristãos após os apóstolos, muitos discípulos diretos deles. Seus escritos nos dão uma janela rara para como a igreja primitiva vivia a fé antes da consolidação do cânon e dos grandes concílios.",
+      "Estudá-los não substitui a Escritura, mas mostra continuidade: a fé que professamos hoje é a mesma que sustentou cristãos perseguidos há quase dois mil anos."
+    ],
+    "data": "2026-07-28",
+    "tempoLeituraMin": 7
+  },
+  {
+    "slug": "exegese-de-romanos-8",
+    "titulo": "Exegese de Romanos 8: Nenhuma Condenação",
+    "materia": "teologia-biblica-exegese",
+    "resumo": "Um estudo verso a verso do capítulo mais consolador da carta de Paulo aos Romanos.",
+    "corpo": [
+      "Romanos 8 começa com uma das declarações mais libertadoras do Novo Testamento: 'Portanto, agora nenhuma condenação há para os que estão em Cristo Jesus'. Para entender o peso dessa frase, precisamos lembrar o que veio antes, nos capítulos 1 a 7.",
+      "Paulo passa o capítulo inteiro construindo um argumento: da condenação à adoção, da carne ao Espírito, do sofrimento presente à glória futura, culminando no hino de certeza do amor de Deus nos versos finais."
+    ],
+    "data": "2026-07-20",
+    "tempoLeituraMin": 12
+  },
+  {
+    "slug": "discipulado-que-transforma",
+    "titulo": "Discipulado Que Transforma: Além do Programa",
+    "materia": "teologia-pratica-pastoral",
+    "resumo": "Discipulado bíblico não é um curso a ser concluído, mas uma vida a ser compartilhada.",
+    "corpo": [
+      "Jesus não criou um currículo de doze semanas para seus discípulos — ele viveu com eles. Comeu, viajou, corrigiu e demonstrou o Reino de Deus em situações reais, do cotidiano ao extraordinário.",
+      "Igrejas hoje frequentemente confundem informação com formação. Discipulado que transforma exige proximidade, tempo e vulnerabilidade — não apenas um bom material de estudo."
+    ],
+    "data": "2026-07-12",
+    "tempoLeituraMin": 6
+  }
+]

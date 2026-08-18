@@ -1,0 +1,38 @@
+[
+  {
+    "slug": "namoro-com-proposito",
+    "titulo": "Namoro com Propósito: Além do Sentimento",
+    "categoria": "relacionamentos",
+    "resumo": "Como discernir se um relacionamento está sendo construído sobre bases que duram.",
+    "corpo": [
+      "O namoro cristão não deveria ser apenas sobre compatibilidade de personalidade, mas sobre direção compartilhada: para onde vocês dois estão caminhando espiritualmente?",
+      "Perguntas difíceis feitas cedo evitam dores maiores depois: como vocês lidam com conflito? Como cada um enxerga dinheiro, família e fé na prática — não apenas na teoria?"
+    ],
+    "data": "2026-08-14",
+    "tempoLeituraMin": 5
+  },
+  {
+    "slug": "cristao-e-engajamento-civico",
+    "titulo": "O Cristão e o Engajamento Cívico",
+    "categoria": "politica",
+    "resumo": "Princípios bíblicos para pensar cidadania e justiça sem cair no partidarismo cego.",
+    "corpo": [
+      "A Escritura chama os crentes a serem sal e luz também na esfera pública — mas isso não significa alinhar a fé automaticamente a um partido ou ideologia.",
+      "Buscar justiça, defender o vulnerável e agir com integridade são mandatos bíblicos que devem guiar nosso engajamento cívico, independentemente de qual lado do espectro político esteja no poder."
+    ],
+    "data": "2026-08-08",
+    "tempoLeituraMin": 6
+  },
+  {
+    "slug": "vocacao-e-trabalho-como-adoracao",
+    "titulo": "Vocação e Trabalho Como Adoração",
+    "categoria": "cultura-trabalho",
+    "resumo": "Seu trabalho segunda a sexta pode ser tão sagrado quanto o culto de domingo.",
+    "corpo": [
+      "A Reforma Protestante recuperou uma verdade que a igreja havia perdido: não existe divisão entre trabalho 'sagrado' e 'secular'. Todo trabalho feito com excelência e integridade é um ato de adoração.",
+      "Isso muda como encaramos segunda-feira: sua planilha, seu atendimento ao cliente, sua sala de aula — tudo pode ser oferecido a Deus como culto vivo."
+    ],
+    "data": "2026-08-01",
+    "tempoLeituraMin": 5
+  }
+]

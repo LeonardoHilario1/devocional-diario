@@ -1,0 +1,99 @@
+// Schema pronto para quando você quiser plugar um banco de dados real.
+//
+// Como ativar:
+//   1. npm install prisma @prisma/client
+//   2. Defina DATABASE_URL no seu .env (ex.: Postgres do Supabase, Neon, Railway...)
+//   3. npx prisma migrate dev --name init
+//   4. Reescreva as funções de lib/db.ts usando `prisma.<modelo>.findMany()` etc,
+//      mantendo as mesmas assinaturas — as páginas não precisam mudar.
+//
+// datasource/generator abaixo já estão prontos, só descomente o provider
+// desejado se não for Postgres.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum FaixaEtaria {
+  adolescentes
+  jovens
+  adultos
+  familia
+}
+
+enum Trilha {
+  devocionais
+  estudos
+  ambos
+}
+
+enum MateriaTeologica {
+  bibliologia_hermeneutica
+  teologia_sistematica
+  historia_da_igreja
+  teologia_biblica_exegese
+  teologia_pratica_pastoral
+}
+
+enum CategoriaVidaSociedade {
+  relacionamentos
+  politica
+  cultura_trabalho
+}
+
+model Devocional {
+  id             String   @id @default(cuid())
+  slug           String   @unique
+  titulo         String
+  data           DateTime
+  versiculo      String
+  referencia     String
+  corpo          String[]
+  aplicacao      String[]
+  oracao         String
+  faixaEtaria    FaixaEtaria[]
+  tempoLeituraMin Int
+  audioUrl       String?
+  criadoEm       DateTime @default(now())
+}
+
+model EstudoTeologico {
+  id             String           @id @default(cuid())
+  slug           String           @unique
+  titulo         String
+  materia        MateriaTeologica
+  resumo         String
+  corpo          String[]
+  data           DateTime
+  tempoLeituraMin Int
+  criadoEm       DateTime         @default(now())
+}
+
+model ArtigoVidaSociedade {
+  id             String                 @id @default(cuid())
+  slug           String                 @unique
+  titulo         String
+  categoria      CategoriaVidaSociedade
+  resumo         String
+  corpo          String[]
+  data           DateTime
+  tempoLeituraMin Int
+  criadoEm       DateTime               @default(now())
+}
+
+model Subscriber {
+  id           String      @id @default(cuid())
+  nome         String
+  email        String      @unique
+  faixaEtaria  FaixaEtaria
+  denominacao  String?
+  trilha       Trilha
+  // Tag usada para segmentação nos disparos de e-mail (ex.: integração
+  // futura com Brevo/Mailchimp/ConvertKit via API).
+  criadoEm     DateTime    @default(now())
+}
