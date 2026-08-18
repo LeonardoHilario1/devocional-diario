@@ -227,7 +227,14 @@ feita.
   `<iframe>` em outro domínio — clickjacking), `X-Content-Type-Options`,
   `Referrer-Policy`, `Permissions-Policy` e `Strict-Transport-Security`. O
   cabeçalho `X-Powered-By: Next.js` também foi desativado para não anunciar
-  a versão do framework.
+  a versão do framework. A política é mais rígida em produção: em
+  `npm run dev` ela libera `'unsafe-eval'` e `ws:` (exigidos pelo Hot Module
+  Reload do Next) e não envia `Strict-Transport-Security` (que em
+  `localhost`/HTTP faria o navegador forçar HTTPS na própria máquina depois).
+  Se o navegador já tiver "guardado" HSTS de um teste anterior a essa
+  correção e `http://localhost:3000` parar de abrir, limpe em
+  `chrome://net-internals/#hsts` (campo "Delete domain security policies",
+  digite `localhost`) — ou simplesmente acesse `http://127.0.0.1:3000`.
 - **Segredos**: `.env` (chaves de API, string de conexão do banco) nunca é
   versionado no git — confira o `.gitignore`. Ao configurar o provedor de
   e-mail, a chave de API dele também deve ficar só no `.env`, nunca em código
