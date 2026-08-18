@@ -3,22 +3,51 @@
 Site de devocionais diários, estudos teológicos e reflexões sobre vida
 cristã, construído com **Next.js 14 (App Router) + TypeScript + Tailwind CSS**.
 
-> ⚠️ **Sem banco de dados por enquanto.** O conteúdo (devocionais, estudos,
-> artigos) é lido de arquivos JSON estáticos em `lib/content/`, e os
-> cadastros do formulário de inscrição são salvos em `data/subscribers.json`
-> local (não versionado no git). Não há Postgres/MySQL/etc conectado — o
-> projeto já vem com um `prisma/schema.prisma` pronto para quando isso for
-> necessário. Veja a seção [Próximo passo: plugar um banco de dados](#próximo-passo-plugar-um-banco-de-dados).
+> **Banco de dados: SQLite local via Prisma.** O conteúdo (devocionais,
+> estudos, artigos) e os cadastros do formulário de inscrição são lidos e
+> gravados através do Prisma (`lib/db.ts` + `lib/prisma.ts`), num banco
+> SQLite local (`dev.db`, não versionado no git). Para trocar por
+> Postgres/MySQL em produção, veja a seção
+> [Trocando o banco de dados](#trocando-o-banco-de-dados).
+
+## Como baixar este projeto para testar
+
+Você não precisa saber programar para colocar o site no ar no seu computador
+e dar uma olhada. Duas formas de pegar os arquivos:
+
+**Opção 1 — Baixar como ZIP (mais simples):**
+1. Acesse [github.com/LeonardoHilario1/devocional-diario](https://github.com/LeonardoHilario1/devocional-diario)
+2. Clique no botão verde **"Code"** → **"Download ZIP"**
+3. Extraia o ZIP em uma pasta no seu computador
+
+**Opção 2 — Clonar com Git** (se já tiver o [Git](https://git-scm.com) instalado):
+```bash
+git clone https://github.com/LeonardoHilario1/devocional-diario.git
+cd devocional-diario
+```
+
+Depois de ter os arquivos na sua máquina, siga os passos abaixo para rodar
+o site.
 
 ## Como testar o site localmente
 
-Pré-requisitos: [Node.js](https://nodejs.org) 18 ou superior e npm.
+Pré-requisitos: [Node.js](https://nodejs.org) 18 ou superior (já vem com o
+`npm`).
 
 ```bash
 # 1. Instale as dependências
 npm install
 
-# 2. Suba o servidor de desenvolvimento
+# 2. Copie o .env de exemplo (já vem pronto para SQLite local)
+cp .env.example .env
+
+# 3. Crie o banco local e rode as migrations
+npx prisma migrate dev
+
+# 4. Popule o banco com o conteúdo de exemplo
+npm run db:seed
+
+# 5. Suba o servidor de desenvolvimento
 npm run dev
 ```
 
@@ -35,12 +64,10 @@ npm run start
 Outros comandos úteis:
 
 ```bash
-npm run lint   # checagem de lint (ESLint)
+npm run lint       # checagem de lint (ESLint)
+npm run db:seed    # repopula o banco com o conteúdo de lib/content/*.json
+npm run db:studio  # abre o Prisma Studio (UI para ver/editar o banco)
 ```
-
-Não é necessário configurar `.env` para rodar localmente — o `.env.example`
-lista variáveis que só serão usadas quando um banco de dados e um provedor
-de e-mail forem plugados no futuro.
 
 ## Estrutura
 
@@ -48,53 +75,120 @@ de e-mail forem plugados no futuro.
 - `app/api/subscribe/route.ts` — endpoint de cadastro de e-mail
 - `components/` — componentes de UI reutilizáveis
 - `lib/db.ts` — **camada única de acesso a dados**. Todas as páginas leem
-  conteúdo através dela. Hoje ela lê de `lib/content/*.json` e grava
-  inscritos em `data/subscribers.json`. Trocar a fonte de dados no futuro
-  significa editar só este arquivo.
-- `lib/content/*.json` — conteúdo de exemplo (devocionais, estudos, artigos)
+  conteúdo através dela, via Prisma. Trocar de banco no futuro significa
+  editar só `prisma/schema.prisma` + `lib/prisma.ts`, mantendo as mesmas
+  assinaturas de função em `lib/db.ts`.
+- `lib/prisma.ts` — instância singleton do `PrismaClient` (com o driver
+  adapter do SQLite)
+- `lib/content/*.json` — conteúdo de exemplo, usado por `prisma/seed.mjs`
+  para popular o banco
 - `lib/site-config.ts` — nome do site, bio do autor, links de redes sociais,
   labels de categorias — edite aqui para personalizar
-- `prisma/schema.prisma` — schema pronto para quando for plugar um banco real
+- `prisma/schema.prisma` — schema do banco (Devocional, EstudoTeologico,
+  ArtigoVidaSociedade, Subscriber)
+- `prisma/seed.mjs` — popula o banco a partir de `lib/content/*.json`
+- `prisma.config.ts` — configuração do Prisma CLI (caminho do schema,
+  migrations e comando de seed)
 
 ## Como adicionar conteúdo hoje
 
-Edite os arquivos em `lib/content/`:
-- `devocionais.json`
-- `estudos.json`
-- `artigos.json`
+Duas opções:
 
-Cada item precisa de um `slug` único (usado na URL). Basta adicionar um novo
-objeto ao array e o site já reflete a mudança.
+1. **Prisma Studio** (recomendado, sem editar JSON): `npm run db:studio`
+   abre uma UI no navegador para criar/editar registros diretamente no banco.
+2. **Editar os JSONs e re-rodar o seed**: edite `lib/content/devocionais.json`,
+   `estudos.json` ou `artigos.json` (cada item precisa de um `slug` único,
+   usado na URL) e rode `npm run db:seed` — o seed usa `upsert`, então só
+   cria o que ainda não existe.
 
-## Próximo passo: plugar um banco de dados
+## Personalizando os links de redes sociais
 
-O projeto já foi deixado pronto para isso:
+Todo o Instagram, YouTube e o botão de WhatsApp que aparecem no site vêm de
+um único lugar: [lib/site-config.ts](lib/site-config.ts). Não precisa mexer
+em nenhuma página — basta editar esse arquivo:
 
-1. `npm install prisma @prisma/client`
-2. Defina `DATABASE_URL` no `.env` (Postgres do Supabase/Neon/Railway, por exemplo)
-3. `npx prisma migrate dev --name init` (usa o schema em `prisma/schema.prisma`)
-4. Reescreva as funções de `lib/db.ts` para usar `prisma.<modelo>.findMany()` etc,
-   **mantendo as mesmas assinaturas de função** — nenhuma página precisa mudar.
-5. Crie um painel simples (ou use Prisma Studio: `npx prisma studio`) para
-   publicar devocionais/estudos sem editar JSON manualmente.
+```ts
+export const siteConfig = {
+  nome: "Renovo Diário",
+  descricao: "Devocionais diários, estudos teológicos e reflexões sobre fé e vida.",
+  autor: {
+    nome: "Seu Nome Aqui",           // troque pelo nome do autor
+    bio: "Escrevo sobre fé...",       // troque pela mini-bio
+  },
+  social: {
+    instagram: "https://instagram.com/seuusuario",   // seu link do Instagram
+    youtube: "https://youtube.com/@seuusuario",       // seu link do YouTube
+    whatsappShareBase: "https://wa.me/?text=",        // não precisa mexer aqui
+  },
+};
+```
 
-## Próximo passo: automação de e-mails
+Troque `instagram` e `youtube` pelos links reais do perfil (copie e cole a
+URL direto do navegador ou do app). O `whatsappShareBase` é usado só para
+montar o botão de "compartilhar no WhatsApp" em cada devocional — não é um
+número de telefone, então normalmente não precisa alterar.
 
-O formulário de cadastro (`components/SubscribeForm.tsx`) já captura:
-nome, e-mail, faixa etária, denominação (opcional) e trilha de interesse
-(devocionais / estudos / ambos) — os campos de segmentação pedidos no plano
-original.
+Depois de editar e salvar o arquivo, é só rodar `npm run dev` de novo (ou dar
+refresh na página, se o servidor já estiver rodando) para ver a mudança.
 
-Hoje esses dados são salvos localmente em `data/subscribers.json`
-(ignorado pelo git). Para automatizar o disparo segmentado:
+## Trocando o banco de dados
 
-1. Escolha um provedor (Brevo, Mailchimp, ConvertKit, Resend...)
-2. No arquivo `app/api/subscribe/route.ts`, no bloco marcado com `TODO`,
-   adicione a chamada à API do provedor para criar o contato com as tags
-   de segmentação (`faixaEtaria` + `trilha`)
-3. Ao publicar um novo devocional, dispare a campanha para a lista/tag
-   correspondente no painel do provedor (ou via API, se quiser automatizar
-   o disparo também)
+O padrão local é SQLite (`dev.db`). Para usar Postgres/MySQL em produção
+(Supabase, Neon, Railway etc.):
+
+1. Em `prisma/schema.prisma`, troque `provider = "sqlite"` para
+   `provider = "postgresql"` (ou `mysql`)
+2. Defina `DATABASE_URL` com a connection string real no `.env` de produção
+3. Troque o driver adapter em `lib/prisma.ts` e `prisma/seed.mjs` — de
+   `@prisma/adapter-better-sqlite3` para `@prisma/adapter-pg` (Postgres) ou
+   equivalente, e ajuste o construtor do adapter para `{ connectionString }`
+4. Rode `npx prisma migrate dev --name init` contra o novo banco
+
+## Como enviar os e-mails para os inscritos
+
+O formulário de cadastro (`components/SubscribeForm.tsx`) já captura nome,
+e-mail, faixa etária, denominação (opcional) e trilha de interesse
+(devocionais / estudos / ambos), e salva tudo no banco de dados (tabela
+`Subscriber`, via Prisma).
+
+**Importante:** guardar o cadastro no banco não envia e-mail nenhum sozinho.
+Hoje o site só *coleta* os inscritos — o disparo em si (o "e-mail que a
+pessoa recebe todo dia") ainda precisa ser configurado à parte. Isso é assim
+de propósito: enviar e-mail em massa exige um serviço especializado, não dá
+para simplesmente usar o seu Gmail/Outlook pessoal (a maioria dos provedores
+bloqueia ou marca como spam o envio em massa por uma conta pessoal).
+
+**O que fazer:**
+
+1. **Crie uma conta em um serviço de envio de e-mail em massa.** Alguns
+   exemplos com plano gratuito para começar: [Brevo](https://www.brevo.com/pt/),
+   [Mailchimp](https://mailchimp.com/), [Resend](https://resend.com/) ou
+   [SendGrid](https://sendgrid.com/). Isso é diferente de criar um e-mail
+   comum — é uma ferramenta que cuida de disparar milhares de e-mails sem
+   cair na caixa de spam.
+2. Dentro do painel desse serviço, gere uma **chave de API** (API Key) — é
+   um código secreto que dá permissão para o site enviar e-mails em seu nome.
+3. Escolha também o **e-mail remetente** (de onde os e-mails vão "sair"),
+   por exemplo `contato@seudominio.com.br`. Alguns provedores pedem para
+   verificar um domínio próprio antes de liberar o envio.
+4. No arquivo `.env` do projeto, preencha:
+   ```bash
+   EMAIL_PROVIDER_API_KEY="a-chave-que-voce-gerou-no-passo-2"
+   EMAIL_FROM="contato@seudominio.com.br"
+   ```
+5. No arquivo [app/api/subscribe/route.ts](app/api/subscribe/route.ts), no
+   bloco marcado com `TODO`, é onde entra a chamada à API do provedor
+   escolhido para criar o contato já com as tags de segmentação
+   (`faixaEtaria` + `trilha`) — cada provedor tem sua própria forma de fazer
+   isso (a documentação deles traz exemplos prontos para copiar).
+6. Ao publicar um novo devocional, dispare a campanha para a lista/tag
+   correspondente direto no painel do provedor (a maioria tem um "criar
+   campanha" bem simples) — ou, se quiser automatizar esse passo também,
+   dá para chamar a API do provedor para disparar sozinho.
+
+Sem esses passos, o formulário continua funcionando normalmente (o cadastro
+é salvo no banco), só que ninguém recebe e-mail até essa integração ser
+feita.
 
 ## Design
 

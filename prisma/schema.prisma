@@ -1,99 +1,63 @@
-// Schema pronto para quando você quiser plugar um banco de dados real.
-//
-// Como ativar:
-//   1. npm install prisma @prisma/client
-//   2. Defina DATABASE_URL no seu .env (ex.: Postgres do Supabase, Neon, Railway...)
-//   3. npx prisma migrate dev --name init
-//   4. Reescreva as funções de lib/db.ts usando `prisma.<modelo>.findMany()` etc,
-//      mantendo as mesmas assinaturas — as páginas não precisam mudar.
-//
-// datasource/generator abaixo já estão prontos, só descomente o provider
-// desejado se não for Postgres.
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider = "sqlite"
 }
 
-enum FaixaEtaria {
-  adolescentes
-  jovens
-  adultos
-  familia
-}
-
-enum Trilha {
-  devocionais
-  estudos
-  ambos
-}
-
-enum MateriaTeologica {
-  bibliologia_hermeneutica
-  teologia_sistematica
-  historia_da_igreja
-  teologia_biblica_exegese
-  teologia_pratica_pastoral
-}
-
-enum CategoriaVidaSociedade {
-  relacionamentos
-  politica
-  cultura_trabalho
-}
+// SQLite não suporta enums nem arrays nativamente, então campos que seriam
+// enum/array (faixaEtaria, materia, categoria, corpo, aplicacao) são
+// gravados como String simples ou JSON-encoded String. A validação dos
+// valores permitidos acontece em TypeScript (ver lib/types.ts) e a
+// serialização/deserialização acontece em lib/db.ts.
 
 model Devocional {
-  id             String   @id @default(cuid())
-  slug           String   @unique
-  titulo         String
-  data           DateTime
-  versiculo      String
-  referencia     String
-  corpo          String[]
-  aplicacao      String[]
-  oracao         String
-  faixaEtaria    FaixaEtaria[]
+  id              String   @id @default(cuid())
+  slug            String   @unique
+  titulo          String
+  data            DateTime
+  versiculo       String
+  referencia      String
+  corpo           String // JSON: string[]
+  aplicacao       String // JSON: string[]
+  oracao          String
+  faixaEtaria     String // JSON: FaixaEtaria[]
   tempoLeituraMin Int
-  audioUrl       String?
-  criadoEm       DateTime @default(now())
+  audioUrl        String?
+  criadoEm        DateTime @default(now())
 }
 
 model EstudoTeologico {
-  id             String           @id @default(cuid())
-  slug           String           @unique
-  titulo         String
-  materia        MateriaTeologica
-  resumo         String
-  corpo          String[]
-  data           DateTime
+  id              String   @id @default(cuid())
+  slug            String   @unique
+  titulo          String
+  materia         String // MateriaTeologica
+  resumo          String
+  corpo           String // JSON: string[]
+  data            DateTime
   tempoLeituraMin Int
-  criadoEm       DateTime         @default(now())
+  criadoEm        DateTime @default(now())
 }
 
 model ArtigoVidaSociedade {
-  id             String                 @id @default(cuid())
-  slug           String                 @unique
-  titulo         String
-  categoria      CategoriaVidaSociedade
-  resumo         String
-  corpo          String[]
-  data           DateTime
+  id              String   @id @default(cuid())
+  slug            String   @unique
+  titulo          String
+  categoria       String // CategoriaVidaSociedade
+  resumo          String
+  corpo           String // JSON: string[]
+  data            DateTime
   tempoLeituraMin Int
-  criadoEm       DateTime               @default(now())
+  criadoEm        DateTime @default(now())
 }
 
 model Subscriber {
-  id           String      @id @default(cuid())
-  nome         String
-  email        String      @unique
-  faixaEtaria  FaixaEtaria
-  denominacao  String?
-  trilha       Trilha
-  // Tag usada para segmentação nos disparos de e-mail (ex.: integração
-  // futura com Brevo/Mailchimp/ConvertKit via API).
-  criadoEm     DateTime    @default(now())
+  id          String   @id @default(cuid())
+  nome        String
+  email       String   @unique
+  faixaEtaria String // FaixaEtaria
+  denominacao String?
+  trilha      String // "devocionais" | "estudos" | "ambos"
+  criadoEm    DateTime @default(now())
 }

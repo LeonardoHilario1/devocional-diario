@@ -11,6 +11,12 @@
 # local data (dev-only subscriber storage — replaced by real DB later)
 /data/subscribers.json
 
+# prisma (SQLite local dev database)
+/prisma/dev.db
+/prisma/dev.db-journal
+/dev.db
+/dev.db-journal
+
 # env
 .env
 .env.local

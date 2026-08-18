@@ -1,5 +1,5 @@
-import fs from "node:fs/promises";
-import path from "node:path";
+import { Prisma } from "@prisma/client";
+import { prisma } from "./prisma";
 import type {
   ArtigoVidaSociedade,
   CategoriaVidaSociedade,
@@ -10,45 +10,105 @@ import type {
   Subscriber,
 } from "./types";
 
-import devocionaisData from "./content/devocionais.json";
-import estudosData from "./content/estudos.json";
-import artigosData from "./content/artigos.json";
-
 /**
  * Camada de acesso a dados.
  *
- * Hoje: lê conteúdo de arquivos JSON locais e grava inscritos em
- * data/subscribers.json (arquivo local, ignorado pelo git).
+ * Lê e grava conteúdo (devocionais, estudos, artigos) e inscritos via
+ * Prisma, no banco SQLite local definido por DATABASE_URL (ver
+ * prisma/schema.prisma). Como SQLite não tem colunas de array/enum nativas,
+ * os campos `corpo`, `aplicacao` e `faixaEtaria` são gravados como JSON
+ * string e convertidos de volta para array aqui.
  *
- * Quando plugar um banco de verdade (ver prisma/schema.prisma):
- * troque o corpo de cada função abaixo por uma chamada equivalente
- * ao Prisma Client (ex.: `prisma.devocional.findMany()`), mantendo
- * as MESMAS assinaturas — assim nenhuma página/componente precisa mudar.
+ * Para trocar por Postgres/MySQL no futuro: troque o `provider` em
+ * prisma/schema.prisma, ajuste DATABASE_URL, rode uma nova migration —
+ * as funções abaixo (e as assinaturas) continuam as mesmas.
  */
 
-const devocionais = devocionaisData as Devocional[];
-const estudos = estudosData as EstudoTeologico[];
-const artigos = artigosData as ArtigoVidaSociedade[];
+function toDevocional(row: {
+  slug: string;
+  titulo: string;
+  data: Date;
+  versiculo: string;
+  referencia: string;
+  corpo: string;
+  aplicacao: string;
+  oracao: string;
+  faixaEtaria: string;
+  tempoLeituraMin: number;
+  audioUrl: string | null;
+}): Devocional {
+  return {
+    slug: row.slug,
+    titulo: row.titulo,
+    data: row.data.toISOString().slice(0, 10),
+    versiculo: row.versiculo,
+    referencia: row.referencia,
+    corpo: JSON.parse(row.corpo),
+    aplicacao: JSON.parse(row.aplicacao),
+    oracao: row.oracao,
+    faixaEtaria: JSON.parse(row.faixaEtaria),
+    tempoLeituraMin: row.tempoLeituraMin,
+    audioUrl: row.audioUrl ?? undefined,
+  };
+}
 
-function porDataDesc<T extends { data: string }>(a: T, b: T) {
-  return new Date(b.data).getTime() - new Date(a.data).getTime();
+function toEstudo(row: {
+  slug: string;
+  titulo: string;
+  materia: string;
+  resumo: string;
+  corpo: string;
+  data: Date;
+  tempoLeituraMin: number;
+}): EstudoTeologico {
+  return {
+    slug: row.slug,
+    titulo: row.titulo,
+    materia: row.materia as MateriaTeologica,
+    resumo: row.resumo,
+    corpo: JSON.parse(row.corpo),
+    data: row.data.toISOString().slice(0, 10),
+    tempoLeituraMin: row.tempoLeituraMin,
+  };
+}
+
+function toArtigo(row: {
+  slug: string;
+  titulo: string;
+  categoria: string;
+  resumo: string;
+  corpo: string;
+  data: Date;
+  tempoLeituraMin: number;
+}): ArtigoVidaSociedade {
+  return {
+    slug: row.slug,
+    titulo: row.titulo,
+    categoria: row.categoria as CategoriaVidaSociedade,
+    resumo: row.resumo,
+    corpo: JSON.parse(row.corpo),
+    data: row.data.toISOString().slice(0, 10),
+    tempoLeituraMin: row.tempoLeituraMin,
+  };
 }
 
 // ---------- Devocionais ----------
 
 export async function getDevocionais(): Promise<Devocional[]> {
-  return [...devocionais].sort(porDataDesc);
+  const rows = await prisma.devocional.findMany({ orderBy: { data: "desc" } });
+  return rows.map(toDevocional);
 }
 
 export async function getDevocionalDoDia(): Promise<Devocional | null> {
-  const lista = await getDevocionais();
-  return lista[0] ?? null;
+  const row = await prisma.devocional.findFirst({ orderBy: { data: "desc" } });
+  return row ? toDevocional(row) : null;
 }
 
 export async function getDevocionalBySlug(
   slug: string
 ): Promise<Devocional | null> {
-  return devocionais.find((d) => d.slug === slug) ?? null;
+  const row = await prisma.devocional.findUnique({ where: { slug } });
+  return row ? toDevocional(row) : null;
 }
 
 export async function getDevocionaisPorFaixaEtaria(
@@ -61,71 +121,74 @@ export async function getDevocionaisPorFaixaEtaria(
 // ---------- Estudos teológicos ----------
 
 export async function getEstudos(): Promise<EstudoTeologico[]> {
-  return [...estudos].sort(porDataDesc);
+  const rows = await prisma.estudoTeologico.findMany({ orderBy: { data: "desc" } });
+  return rows.map(toEstudo);
 }
 
 export async function getEstudoBySlug(
   slug: string
 ): Promise<EstudoTeologico | null> {
-  return estudos.find((e) => e.slug === slug) ?? null;
+  const row = await prisma.estudoTeologico.findUnique({ where: { slug } });
+  return row ? toEstudo(row) : null;
 }
 
 export async function getEstudosPorMateria(
   materia: MateriaTeologica
 ): Promise<EstudoTeologico[]> {
-  const lista = await getEstudos();
-  return lista.filter((e) => e.materia === materia);
+  const rows = await prisma.estudoTeologico.findMany({
+    where: { materia },
+    orderBy: { data: "desc" },
+  });
+  return rows.map(toEstudo);
 }
 
 // ---------- Vida & Sociedade ----------
 
 export async function getArtigos(): Promise<ArtigoVidaSociedade[]> {
-  return [...artigos].sort(porDataDesc);
+  const rows = await prisma.artigoVidaSociedade.findMany({ orderBy: { data: "desc" } });
+  return rows.map(toArtigo);
 }
 
 export async function getArtigoBySlug(
   slug: string
 ): Promise<ArtigoVidaSociedade | null> {
-  return artigos.find((a) => a.slug === slug) ?? null;
+  const row = await prisma.artigoVidaSociedade.findUnique({ where: { slug } });
+  return row ? toArtigo(row) : null;
 }
 
 export async function getArtigosPorCategoria(
   categoria: CategoriaVidaSociedade
 ): Promise<ArtigoVidaSociedade[]> {
-  const lista = await getArtigos();
-  return lista.filter((a) => a.categoria === categoria);
+  const rows = await prisma.artigoVidaSociedade.findMany({
+    where: { categoria },
+    orderBy: { data: "desc" },
+  });
+  return rows.map(toArtigo);
 }
 
 // ---------- Inscritos (newsletter) ----------
 
-const SUBSCRIBERS_PATH = path.join(process.cwd(), "data", "subscribers.json");
-
-async function readSubscribers(): Promise<Subscriber[]> {
-  try {
-    const raw = await fs.readFile(SUBSCRIBERS_PATH, "utf-8");
-    return JSON.parse(raw) as Subscriber[];
-  } catch {
-    return [];
-  }
-}
-
 export async function addSubscriber(
   input: Omit<Subscriber, "criadoEm">
 ): Promise<{ ok: true } | { ok: false; erro: string }> {
-  const atuais = await readSubscribers();
-
-  if (atuais.some((s) => s.email.toLowerCase() === input.email.toLowerCase())) {
-    return { ok: false, erro: "Este e-mail já está cadastrado." };
+  try {
+    await prisma.subscriber.create({
+      data: {
+        nome: input.nome,
+        email: input.email.toLowerCase(),
+        faixaEtaria: input.faixaEtaria,
+        denominacao: input.denominacao,
+        trilha: input.trilha,
+      },
+    });
+    return { ok: true };
+  } catch (erro) {
+    if (
+      erro instanceof Prisma.PrismaClientKnownRequestError &&
+      erro.code === "P2002"
+    ) {
+      return { ok: false, erro: "Este e-mail já está cadastrado." };
+    }
+    throw erro;
   }
-
-  const novo: Subscriber = { ...input, criadoEm: new Date().toISOString() };
-
-  await fs.mkdir(path.dirname(SUBSCRIBERS_PATH), { recursive: true });
-  await fs.writeFile(
-    SUBSCRIBERS_PATH,
-    JSON.stringify([...atuais, novo], null, 2),
-    "utf-8"
-  );
-
-  return { ok: true };
 }
